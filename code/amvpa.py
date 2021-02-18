@@ -4,6 +4,7 @@ import sys
 from scipy import stats
 from joblib import Parallel, delayed
 from sklearn import svm
+from scipy.spatial import distance as dist
 
 class Dataset:
     def __init__(self, data_src, mask=None, mask_val=None):
@@ -71,10 +72,11 @@ class Dataset:
         self.sl_map = None
 
     def set_sa(self, sa_name, arr):
-
         # First check that number of attributes == num samples
         if len(arr) != self.shape[0]:
             print("ERROR: Sample Attributes do not match number of samples")
+            print(("\tSA: {} with length {} ; for dataset with shape {}").format(
+                    sa_name, len(arr), self.shape))
             sys.exit()
         self.sa[str(sa_name)] = arr
         if sa_name == 'targets':
@@ -119,6 +121,7 @@ class Dataset:
         cols = np.arange(self.shape[1])
         sel = np.array([f in features for f in self.fa['f_indx']])
         samples = self.samples[:,sel]
+        # fix for non-zero no variance
         if elim_zero_var_feats:
             bool_array = np.diag(np.dot(samples.T,samples))>0
             samples = samples[:,bool_array]
@@ -132,8 +135,39 @@ class Dataset:
         nu_ds.shape = nu_ds.samples.shape
         return nu_ds
 
+    def mean_samples_across_chunks(self):
+        samps = None
+        for ch in np.unique(self.chunks):
+            s = self.samples[self.chunks==ch,:]
+            if samps is None:
+                samps = s
+            else:
+                samps = samps + s
+        samps = samps/float(len(np.unique(self.chunks)))
+        nu_ds = Dataset(samps)
+        nu_ds.a = self.a
+        nu_ds.fa = self.fa
+        ch = np.unique(self.chunks)[0]
+        for sa in self.sa.keys():
+            nu_ds.sa[sa] = np.array(self.sa[sa])[self.chunks == ch]
+        nu_ds.shape = nu_ds.samples.shape
+
+        return nu_ds
+        
+
+    def select_chunk(self, chunk):
+        samples = self.samples[self.chunks == chunk, :]
+        nu_ds = Dataset(samples)
+        nu_ds.a = self.a
+        nu_ds.sa = {}
+        #nu_ds.chunks = nu_ds.sa['chunks']
+        #nu_ds.targets = nu_ds.sa['targets']
+        nu_ds.fa = self.fa
+        nu_ds.shape = nu_ds.samples.shape
+        return nu_ds
+
     def set_searchlight_map(self, sl_map):
-        self.sl_map = sl_map
+        self.fa['sl_map'] = sl_map
 
 class InputError(Exception):
     """Exception raised for errors in the input.
@@ -147,8 +181,28 @@ class InputError(Exception):
         self.expression = expression
         self.message = message
 
+def rdm(ds, metric="correlation"):
+    return dist.pdist(ds.samples, metric=metric)
+
+def inter_chunk_rdm_correlation(ds, metric="correlation"):
+    rsa_by_chunks = None
+    for ch in np.unique(ds.chunks):
+        ds_ch = ds.select_chunk(ch)
+        rsa_ch = rdm(ds_ch, metric=metric).reshape((1,-1))
+        if rsa_by_chunks is None:
+            rsa_by_chunks = rsa_ch
+        else:
+            rsa_by_chunks = np.hstack((rsa_by_chunks, rsa_ch))
+    mu_corr = np.mean(1-dist.pdist(rsa_by_chunks,metric="correlation"))
+    return [mu_corr]
+
+def inter_subject_rdm_correlation(ds, subjects=None, metric="correlation"):
+    if subjects is not None:
+        ds.set_sa("chunks", subjects)
+    return inter_chunk_rdm_correlation(ds, metric=metric)
         
-def cross_validated_classification(ds, clf, return_mean=True):
+def cross_validated_classification(ds, clf=None, return_mean=True, **kwargs):
+
     try:
         results = [] 
         for ch in np.unique(ds.chunks): 
@@ -166,10 +220,12 @@ def cross_validated_classification(ds, clf, return_mean=True):
     except:
         return "FAIL"
 
-def _run_searchlight(ds, idx, measure, meas_args=None, 
-            i=None, n=None, return_on_fail="chance"):
-    print("[{}\t\t]\t{} / {}".format(idx[0],i,n), end="\r")
-    m_value = measure(ds,meas_args)
+def _run_searchlight(ds, idx, measure, i=None, n=None, 
+                    return_on_fail="chance", **kwargs):
+    
+    if i is not None and n is not None:
+        print("[{}\t\t]\t{} / {}".format(idx[0],i,n), end="\r")
+    m_value = measure(ds,**kwargs)
     ret_val = None
     if m_value == "FAIL":
         print("<!> WARNING <!> Searchlight {} FAIL!".format(idx[0]))
@@ -188,13 +244,13 @@ def _run_searchlight(ds, idx, measure, meas_args=None,
     return ret_val
     
 
-def searchlight(ds, measure=None, meas_args=None, nproc=12):
+def searchlight(ds, measure, nproc=12, **kwargs):
 
     sl_result = Parallel(n_jobs=nproc)(
             delayed(_run_searchlight)(
-                ds.select_features(idx), idx, measure, meas_args, 
-                i=i, n=len(ds.sl_map))
-            for i,idx in enumerate(ds.sl_map)) 
+                ds.select_features(idx), idx, measure, 
+                i=i, n=len(ds.fa['sl_map']), **kwargs)
+            for i,idx in enumerate(ds.fa['sl_map'])) 
     
     i = sl_result[0].shape[0]
     j = len(sl_result)

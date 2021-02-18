@@ -1,8 +1,3 @@
-#################################################################################
-#
-#   ROI Search using Parallel processing to speed things up
-#
-##################################################################################
 from amvpa import *
 import sys
 
@@ -54,12 +49,12 @@ ds.set_searchlight_map(sl_map)
 
 ##### Run searchlight and save to nifti file
 measure = cross_validated_classification
-measure_args = svm.LinearSVC
+clf = svm.LinearSVC
 
 # Run for Q1, chunks are runs, targets are 20 conditions
 savefile = "{}Q1_svm_sl_20conds.nii".format(opath)
 
-res = searchlight(ds, measure=measure, meas_args=measure_args, nproc=40)
+res = searchlight(ds, measure=measure, nproc=12, clf=clf)
 res.save_to_nifti(savefile)
 """
 ########## Now change the chunks and targets for Q2
