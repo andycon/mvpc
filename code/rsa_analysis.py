@@ -15,10 +15,6 @@ for s in subs:
 
 ds_all.set_sa("chunks",np.repeat(subs,20))
 
-ds_all.samples = ds_all.samples[:,:100]
-ds_all.fa['f_indx'] = ds_all.fa['f_indx'][:100]
-ds_all.fa['sl_map'] = ds_all.fa['sl_map'][:100]
-
 res = searchlight(ds_all, inter_subject_rdm_correlation)
 
 

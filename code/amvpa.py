@@ -192,7 +192,7 @@ def inter_chunk_rdm_correlation(ds, metric="correlation"):
         if rsa_by_chunks is None:
             rsa_by_chunks = rsa_ch
         else:
-            rsa_by_chunks = np.hstack((rsa_by_chunks, rsa_ch))
+            rsa_by_chunks = np.vstack((rsa_by_chunks, rsa_ch))
     mu_corr = np.mean(1-dist.pdist(rsa_by_chunks,metric="correlation"))
     return [mu_corr]
 
