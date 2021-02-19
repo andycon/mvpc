@@ -1,12 +1,13 @@
 from amvpa import *
 
-def load(sub):
+def load(sub, allruns=False):
     print("Loading subject ====> {}".format(sub))
     dpath = "../../preproc/sub-rid0000{}/".format(sub)
     opath = "../sub-rid0000{}/".format(sub)
 
     tasks = ["beh","tax"]
     data_fn = dpath+"Qtstats_{}_run-{}.nii.gz"
+    allruns_fn = dpath+"Qtstats_allruns.nii.gz"
     mask_fn = dpath+"glasser_masks.nii.gz"
     animals = ['bird','insect','primate','reptile','ungulate']
     behaviors = ['eating','fighting','running','swimming']
@@ -17,20 +18,25 @@ def load(sub):
     ## Pre-calculated searchlight map
     sl_map_fn = "glassGM_Searchlight.txt"
 
-    # END SETUP 
-
     ds = None
-    for task in tasks:
-        for r in range(1,6):
-            if ds is None:
-                ds = Dataset(data_fn.format(task, r), mask=mask_fn)
-            else:
-                ds.append(Dataset(data_fn.format(task,r), mask=mask_fn))
+    if allruns:
+        ds = Dataset(allruns_fn, mask=mask_fn)
+        ds.set_sa('targets',twenty_conds)
+        ds.set_sa('animals', animals)
+        ds.set_sa('behaviors', behaviors)
+    else:
 
-    ds.set_sa('targets', np.tile(twenty_conds,10))
-    ds.set_sa('chunks', np.repeat(range(10),20))
-    ds.set_sa('animals', np.tile(animals,10))
-    ds.set_sa('behaviors', np.tile(behaviors, 10))
+        for task in tasks:
+            for r in range(1,6):
+                if ds is None:
+                    ds = Dataset(data_fn.format(task, r), mask=mask_fn)
+                else:
+                    ds.append(Dataset(data_fn.format(task,r), mask=mask_fn))
+
+        ds.set_sa('targets', np.tile(twenty_conds,10))
+        ds.set_sa('chunks', np.repeat(range(10),20))
+        ds.set_sa('animals', np.tile(animals,10))
+        ds.set_sa('behaviors', np.tile(behaviors, 10))
 
     # Load a pre-computed searchlight space
 
