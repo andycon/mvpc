@@ -31,21 +31,43 @@ However, we only need half of this matrix without the diagonal, either the upper
 or lower triangle, which could be derived from this square symmetrical matrix.
 But there is an easier way provided by the SciPy Python Library. This library
 provides lots of useful functions for doing RSA analysis, and cluster analyses.
-For the RDM, we can use pdist (note that the functionality for pdist in SciPy is
-almost identical to the pdist function in Matlab). Usign Pdist in this context
-we can do the following:
+For the RDM, we can use **pdist** (note that the functionality for **pdist** in
+SciPy is almost identical to the **pdist** function in Matlab). Using **pdist**
+in this context we can do the following:
 
 ```python
-from scipy.spatial.distance import pdist
+import scipy.spatial.distance as dist
 
-dist = pdist(samples, metric='correlation')
-dist.shape # this should yield (190,)
+rdm = dist.pdist(samples, metric='correlation')
+rdm.shape # this should yield (190,)
 ```
 **pdist** gives us a vector of length (n * (n-1)) / 2, for n equaling the number
-of conditions or rows in the input. Note that as a default pdist uses Euclidean
+of conditions or rows in the input. Note that as a default **pdist** uses Euclidean
 distance as the distance metric, so it necessary to set the metric value to
 "correlation" if you want correlation distance. 
 
+In order to run an **RDM** searchlight in the context of our MVPA toolset, we
+can define an **RDM Measure**, which is a member of the abstract set of
+**dataset measures**. The concept of a **dataset measure** in PyMVPA,
+CoSMoMVPA, and in our own aMVPA, is an abstraction that defines the behavior of a
+function that takes a **Dataset** as input, and returns a single value, or a set
+of values, that represent the outcome of some measure that desribes the dataset
+as a whole (as opposed to say, a single feature, sample, or whatever). For
+Lab Assignment 1, we defined the function **cross_validated_classification**.
+This function is an example of a **dataset measure** because it takes a dataset
+as input, and returns the classification accuracy across data-folds for some
+classification procedure, e.g. LinearSVC from **scikit-learn**. In order to make
+the concept of a **dataset measure** useful in different contexts, we also need
+to know what kind of data structure will be returned be a measure. For this
+let's stipulate that any **dataset measure** returns values in the form of a
+column vector. So within the **amvpa.py**, we can define an **rdm measure** as
+follows:
+
+```python
+def rdm_measure(ds, metric="correlation"):
+    rdm = dist.pdist(ds.samples, metric=metric)
+    return rdm.reshape((rdm.shape[0],-1)) # enforce column vector output
+```
 
  
 
