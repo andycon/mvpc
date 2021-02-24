@@ -264,6 +264,17 @@ def searchlight(ds, measure, nproc=12, **kwargs):
 
     return sl_ds
 
+def get_f_indx_for_mni_coord(mni_coord, grid, aff):
+    x,y,z = grid
+    vol_idx = np.arange(x*y*z).reshape((x,y,z))
+    indcs = np.indices((x,y,z))
+    mni = np.ones((4,1))
+    mni[:3,0] = mni_coord
+    c = np.round(np.dot(np.linalg.inv(aff),mni))
+    idx = vol_idx[int(c[0]), int(c[1]), int(c[2])]
+    return idx
+
+
 def spherical_neighborhood(idx, grid, radius=1):
     """ 
     Compute indices of voxels contained in sphere centered on target voxel. 
