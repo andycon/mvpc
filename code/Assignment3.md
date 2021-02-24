@@ -12,7 +12,7 @@ subejects. ISC statnds for inter-subject correlation. The RDM can be calculated
 using Pearson correlation distance, which is 1 - Pearson r, where the Pearson r
 is calculated between every pair of condition patterns. Because we have 20
 conditions, the full correlation matrix can be calculated as a 20 by 20 square
-symettrical matrix with ones along the diagonal. Subtracting 1 this matrix from
+symetrical matrix with ones along the diagonal. Subtracting this matrix from
 1 gives you a correlation distance matrix, which is also symetrical, but has
 zeros along the diagonal. this can be done in Python using Numpy like this:
 
@@ -27,9 +27,27 @@ r_matrix.shape # this should yield (20,20)
 
 dist = 1 - r_matrix
 ```
+However, we only need half of this matrix without the diagonal, either the upper
+or lower triangle, which could be derived from this square symmetrical matrix.
+But there is an easier way provided by the SciPy Python Library. This library
+provides lots of useful functions for doing RSA analysis, and cluster analyses.
+For the RDM, we can use pdist (note that the functionality for pdist in SciPy is
+almost identical to the pdist function in Matlab). Usign Pdist in this context
+we can do the following:
+
+```python
+from scipy.spatial.distance import pdist
+
+dist = pdist(samples, metric='correlation')
+dist.shape # this should yield (190,)
+```
+**pdist** gives us a vector of length (n * (n-1)) / 2, for n equaling the number
+of conditions or rows in the input. Note that as a default pdist uses Euclidean
+distance as the distance metric, so it necessary to set the metric value to
+"correlation" if you want correlation distance. 
 
 
-First lets define 
+ 
 
 ## Question 2
 
