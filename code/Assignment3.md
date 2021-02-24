@@ -75,6 +75,23 @@ dataset for the 20-condition Behaving Animals dataset that we have been using.
 This is just so that I don't have to keep rewriting the code for each new
 analysis. See [load_ds.py](https://github.com/andycon/mvpc/blob/master/code/load_ds.py).
 
+We can use
+[load_ds.py](https://github.com/andycon/mvpc/blob/master/code/load_ds.py) to
+load a dataset for subject '01':
+
+```python
+from load_ds import load
+
+s = '01'
+ds = load(s)
+```
+
+This will load a dataset that has contains 200 rows, with ten chunks
+corresponding to the ten runs from the experiment, thus we have ten sets of 20
+patterns. But for RDM analysis, we need just one pattern for each of the 20
+conditions. To get this we can take the samples for each chunk and average those
+together. I have written a helper function for this and added it to
+[amvpa.py](https://github.com/andycon/mvpc/blob/master/code/amvpa.py#"class%20Dataset").
 
 
 
