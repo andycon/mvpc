@@ -69,6 +69,15 @@ def rdm_measure(ds, metric="correlation"):
     return rdm.reshape((rdm.shape[0],-1)) # enforce column vector output
 ```
 
+Now that we have defined the RDM measure, we can use it directly to run a
+searchlight on a given dataset. I have written a helper function to load a
+dataset for the 20-condition Behaving Animals dataset that we have been using.
+This is just so that I don't have to keep rewriting the code for each new
+analysis. See [load_ds.py](https://github.com/andycon/mvpc/blob/master/code/load_ds.py).
+
+
+
+
  
 
 ## Question 2
