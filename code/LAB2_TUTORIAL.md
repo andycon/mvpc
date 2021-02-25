@@ -146,6 +146,49 @@ for s in subs:
 ds_all.set_sa("chunks",np.repeat(subs,20))
 ```
 Let's define the **dataset measure** function called
+**inter_chunk_rdm_correlation**:
+
+```python
+def inter_chunk_rdm_correlation(ds, metric="correlation"):
+    """The average correlation between vectorized distance matrices computed for
+    each chunk in the dataset.
+
+    This **dataset measure** function breaks the input dataset up by chunks,
+    computes the RDM for the samples in each chunk. The vectorized RDMs are
+    vertically stacked and then the average correlation between chunk-defined
+    RDMs is returned. 
+
+    Note that if the chunks attribute designates individual subjects, then this
+    function computes the inter-subject correlation (ISC) for RDMs.
+
+    Parameters
+    ----------
+    ds : amvpa.Dataset object
+        Chunks attribute must be set, and each chunk must have the same number
+        of rows.
+
+    metric: str, default "correlation"
+        This sets the pdist metric parameter for the RDM distance metric. It
+        does not affect the correlation between RDMs computed between chunks,
+        which is set to return the average Pearson correlation.
+
+    Returns
+    -------
+    mu_corr : np.array
+        This will be a single value, but to conform to **dataset measure**
+        output, this single value is wrapped in a 1 x 1 column vector.
+    """
+    rsa_by_chunks = None
+    for ch in np.unique(ds.chunks):
+        ds_ch = ds.select_chunk(ch)
+        rsa_ch = rdm(ds_ch, metric=metric).reshape((1,-1))
+        if rsa_by_chunks is None:
+            rsa_by_chunks = rsa_ch
+        else:
+            rsa_by_chunks = np.vstack((rsa_by_chunks, rsa_ch))
+    mu_corr = np.mean(1-dist.pdist(rsa_by_chunks,metric="correlation"))
+    return [mu_corr]
+```
  
 
 ## Question 2
