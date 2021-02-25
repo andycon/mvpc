@@ -84,6 +84,7 @@ from load_ds import load
 
 s = '01'
 ds = load(s)
+ds.shape # This should yield (200, 34928)
 ```
 
 This will load a dataset that has contains 200 rows, with ten chunks
@@ -91,9 +92,59 @@ corresponding to the ten runs from the experiment, thus we have ten sets of 20
 patterns. But for RDM analysis, we need just one pattern for each of the 20
 conditions. To get this we can take the samples for each chunk and average those
 together. I have written a helper function for this and added it to
-[amvpa.py](https://github.com/andycon/mvpc/blob/master/code/amvpa.py#"class%20Dataset").
+[amvpa.py](https://github.com/andycon/mvpc/blob/master/code/amvpa.py") as a
+class function within the Dataset class definition:
 
+```python
+ds = ds.mean_samples_across_chunks()
+ds.shape # should now yield (20, 34928)
+```
+Alternatively, if you have updated your preprocessed data to include the
+"allruns" GLM, you can skip the last step by passing keyword argument
+**allruns** set to True to the load function:
 
+```python
+ds = load(s, allruns=True)
+```
+
+Because we have already loaded a precomputed searchlight map as part of our
+**load** routine, running an RDM searchlight can be done like this:
+
+```python
+rdm_sl_ds = searchlight(ds, rdm_measure)
+rdm_sl_ds.shape # This should yield (190, 34928)
+```
+
+This will take a while a while to compute. Note that the shape of the dataset
+returned by the searchlight call is (190, 34298). This is because each column of
+the samples is one vectorized RDM (lower/upper triangle). This could be useful,
+but it is not yet what we need to find the solution for Q1, which requires the
+ISC between RDMs at each searchlight. So, we need to do this for every subject,
+then iterate over all features (columns) to combine searchlight-RDMs across
+subjects to compute the average Pearson correlation between all pairs of
+subject-specific RDMs.
+
+One way to do this is to define a new function that can do the work for us. This
+new function will be another example of a **dataset measure**. Because all of
+our subjects are in the same space, and the features correspond across subjects,
+we can load each subject and combine them into a single dataset by stacking the
+samples vertically, and setting the chunks sample attribute to reflect the
+subject IDs. Our new function will take this type of dataset as input. First
+load the combined dataset:
+
+```python
+subs = [1, 12, 17, 24, 27, 31, 32, 33, 34, 36, 37, 41] 
+
+ds_all = None
+for s in subs:
+    ds = load("{:02}".format(s), allruns=True)
+    if ds_all is None:
+        ds_all = ds
+    else:
+        ds_all.append(ds)
+
+ds_all.set_sa("chunks",np.repeat(subs,20))
+```
 
  
 

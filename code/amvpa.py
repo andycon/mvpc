@@ -181,8 +181,10 @@ class InputError(Exception):
         self.expression = expression
         self.message = message
 
-def rdm(ds, metric="correlation"):
-    return dist.pdist(ds.samples, metric=metric)
+def rdm_measure(ds, metric="correlation"):
+    rdm = dist.pdist(ds.samples, metric=metric)
+    return rdm.reshape((rdm.shape[0],-1)) # enforce column vector output
+
 
 def inter_chunk_rdm_correlation(ds, metric="correlation"):
     rsa_by_chunks = None
@@ -226,6 +228,7 @@ def _run_searchlight(ds, idx, measure, i=None, n=None,
     if i is not None and n is not None:
         print("[{}\t\t]\t{} / {}".format(idx[0],i,n), end="\r")
     m_value = measure(ds,**kwargs)
+    """
     ret_val = None
     if m_value == "FAIL":
         print("<!> WARNING <!> Searchlight {} FAIL!".format(idx[0]))
@@ -239,8 +242,8 @@ def _run_searchlight(ds, idx, measure, i=None, n=None,
             ret_val = r
     else:
         ret_val = m_value
-        
-    ret_val = np.array(ret_val).reshape((len(ret_val),-1))
+    """ 
+    ret_val = np.array(m_value).reshape((len(m_value),-1))
     return ret_val
     
 
