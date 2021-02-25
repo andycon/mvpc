@@ -155,8 +155,8 @@ def inter_chunk_rdm_correlation(ds, metric="correlation"):
 
     This **dataset measure** function breaks the input dataset up by chunks,
     computes the RDM for the samples in each chunk. The vectorized RDMs are
-    vertically stacked and then the average correlation between chunk-defined
-    RDMs is returned. 
+    vertically stacked as a set of row vectors and then the average correlation
+    between RDMs is returned. 
 
     Note that if the chunks attribute designates individual subjects, then this
     function computes the inter-subject correlation (ISC) for RDMs.
@@ -187,7 +187,7 @@ def inter_chunk_rdm_correlation(ds, metric="correlation"):
         else:
             rsa_by_chunks = np.vstack((rsa_by_chunks, rsa_ch))
     mu_corr = np.mean(1-dist.pdist(rsa_by_chunks,metric="correlation"))
-    return [mu_corr]
+    return np.array([mu_corr]).reshape((1,1))
 ```
  
 
