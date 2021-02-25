@@ -73,11 +73,9 @@ Now that we have defined the RDM measure, we can use it directly to run a
 searchlight on a given dataset. I have written a helper function to load a
 dataset for the 20-condition Behaving Animals dataset that we have been using.
 This is just so that I don't have to keep rewriting the code for each new
-analysis. See [load_ds.py](https://github.com/andycon/mvpc/blob/master/code/load_ds.py).
+analysis. See [load_ds.py][1].
 
-We can use
-[load_ds.py](https://github.com/andycon/mvpc/blob/master/code/load_ds.py) to
-load a dataset for subject '01':
+We can use [load_ds.py][1] to load a dataset for subject '01':
 
 ```python
 from load_ds import load
@@ -92,8 +90,7 @@ corresponding to the ten runs from the experiment, thus we have ten sets of 20
 patterns. But for RDM analysis, we need just one pattern for each of the 20
 conditions. To get this we can take the samples for each chunk and average those
 together. I have written a helper function for this and added it to
-[amvpa.py](https://github.com/andycon/mvpc/blob/master/code/amvpa.py) as a
-class function within the Dataset class definition:
+[amvpa.py][2] as a class function within the Dataset class definition:
 
 ```python
 ds = ds.mean_samples_across_chunks()
@@ -194,7 +191,8 @@ def inter_chunk_rdm_correlation(ds, metric="correlation"):
     return np.array([mu_corr]).reshape((1,1))
 ```
 
-In order to run the ISC RDM searchlight we can put it all together in a script:
+In order to run the ISC RDM searchlight we can put it all together in a
+[script][3]:
 
 ```python
 from load_ds import load
@@ -219,8 +217,9 @@ res = searchlight(ds_all, inter_subject_rdm_correlation, nproc=nproc)
 
 res.save_to_nifti(save_filename)
 ```
-
-
+[1]: https://github.com/andycon/mvpc/blob/master/code/load_ds.py
+[2]: https://github.com/andycon/mvpc/blob/master/code/amvpa.py
+[3]: https://github.com/andycon/mvpc/blob/master/code/lab2_Q1.py
 
 ## Question 2
 
