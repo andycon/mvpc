@@ -181,12 +181,16 @@ def inter_chunk_rdm_correlation(ds, metric="correlation"):
     rsa_by_chunks = None
     for ch in np.unique(ds.chunks):
         ds_ch = ds.select_chunk(ch)
-        rsa_ch = rdm(ds_ch, metric=metric).reshape((1,-1))
+        rsa_ch = rdm(ds_ch, metric=metric).reshape((1,-1)) # make row vector
         if rsa_by_chunks is None:
             rsa_by_chunks = rsa_ch
         else:
             rsa_by_chunks = np.vstack((rsa_by_chunks, rsa_ch))
+    # Use 1 minus pdist, which will change correlation distance to Pearson r,
+    # and average the result:
     mu_corr = np.mean(1-dist.pdist(rsa_by_chunks,metric="correlation"))
+
+    # return value as a numpy column vector
     return np.array([mu_corr]).reshape((1,1))
 ```
  
