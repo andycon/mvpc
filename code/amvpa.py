@@ -257,26 +257,11 @@ def cross_validated_classification(ds, clf=None, return_mean=True, **kwargs):
 def _run_searchlight(ds, idx, measure, i=None, n=None, 
                     return_on_fail="chance", **kwargs):
     
-    if i is not None and n is not None:
-        print("[{}\t\t]\t{} / {}".format(idx[0],i,n), end="\r")
     m_value = measure(ds,**kwargs)
-    """
-    ret_val = None
-    if m_value == "FAIL":
-        print("<!> WARNING <!> Searchlight {} FAIL!".format(idx[0]))
-        if return_on_fail == "chance":
-            chance = 1.0/len(np.unique(ds.targets))
-            ret_val = [chance]
-            print("\t>>> Imputing chance: {}".format(chance))
-        else:
-            r = return_on_fail
-            print("\t>>> Imputing provided return_on_fail value: {}".format(r))
-            ret_val = r
-    else:
-        ret_val = m_value
-    """ 
-    ret_val = np.array(m_value).reshape((len(m_value),-1))
-    return ret_val
+    
+    if i is not None and n is not None:
+        print("[{}\t\t]\t{} / {}\tMeasure result shape: {}".format(idx[0],i,n, m_value.shape), end="\r")
+    return m_value
     
 
 def searchlight(ds, measure, nproc=12, **kwargs):

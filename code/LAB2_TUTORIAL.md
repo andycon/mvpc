@@ -186,14 +186,41 @@ def inter_chunk_rdm_correlation(ds, metric="correlation"):
             rsa_by_chunks = rsa_ch
         else:
             rsa_by_chunks = np.vstack((rsa_by_chunks, rsa_ch))
-    # Use 1 minus pdist, which will change correlation distance to Pearson r,
+    # Use 1 minus pdist, which will convert correlation distance to Pearson r,
     # and average the result:
     mu_corr = np.mean(1-dist.pdist(rsa_by_chunks,metric="correlation"))
 
     # return value as a numpy column vector
     return np.array([mu_corr]).reshape((1,1))
 ```
- 
+
+In order to run the ISC RDM searchlight we can put it all together in a script:
+
+```python
+from load_ds import load
+from amvpa import *
+
+nproc = 12 # number of processors to use.
+save_filename = "../Q1_isc_rdm_sl_allruns.nii.gz"
+
+subs = [1, 12, 17, 24, 27, 31, 32, 33, 34, 36, 37, 41]
+
+ds_all = None
+for s in subs:
+    ds = load("{:02}".format(s), allruns=True)
+    if ds_all is None:
+        ds_all = ds
+    else:
+        ds_all.append(ds)
+
+ds_all.set_sa("chunks",np.repeat(subs,20))
+
+res = searchlight(ds_all, inter_subject_rdm_correlation, nproc=nproc)
+
+res.save_to_nifti(save_filename)
+```
+
+
 
 ## Question 2
 
