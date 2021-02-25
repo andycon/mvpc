@@ -92,7 +92,7 @@ corresponding to the ten runs from the experiment, thus we have ten sets of 20
 patterns. But for RDM analysis, we need just one pattern for each of the 20
 conditions. To get this we can take the samples for each chunk and average those
 together. I have written a helper function for this and added it to
-[amvpa.py](https://github.com/andycon/mvpc/blob/master/code/amvpa.py") as a
+[amvpa.py](https://github.com/andycon/mvpc/blob/master/code/amvpa.py) as a
 class function within the Dataset class definition:
 
 ```python
@@ -145,7 +145,7 @@ for s in subs:
 
 ds_all.set_sa("chunks",np.repeat(subs,20))
 ```
-
+Let's define the **dataset measure** function called
  
 
 ## Question 2
