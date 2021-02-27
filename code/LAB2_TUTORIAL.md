@@ -356,12 +356,19 @@ plt.title("Average RDM for {} {}".format(h,roi))
 plt.savefig("avg_{}_{}.png".format(h,roi))
 ```
 
+The resulting RDM looks like this:
 
+![Average RDM for Left EBA][7]
+
+Note: MDS examples are yet to come.... stay tuned.
 
 
 
 [4]: https://www.cs.utexas.edu/users/fussell/courses/cs384g-fall2011/lectures/lecture07-Affine.pdf
 [5]: https://github.com/andycon/mvpc/blob/master/code/eba_l.png
+[6]: https://github.com/andycon/mvpc/blob/master/code/lab2_Q2.py
+[7]: https://github.com/andycon/mvpc/blob/master/code/avg_Left_EBA.png
+
 ## Question 3
 
 Calculate correlations of RDMs between these 5 loci then plot as 2nd order DSM
