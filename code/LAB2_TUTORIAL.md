@@ -226,6 +226,87 @@ res.save_to_nifti(save_filename)
 Calculate RDMs and make MDS plots for searchlights centered on EBA, FFA, pSTS,
 OP (LIP?), IPS, PM coordinates (get coordinates from from Neurosynth).
 
+First we need to look up some MNI coordinates for centers of ROIs.  Note that
+the set below is neither a complete nor an authoritative set of MNI coordinates
+for answering the question. These are just for illustrating how to solve the
+problem.
+
+```python
+i# Define a dictionary for the coordinates
+coords = {
+    'EBA':  {   'R': (48, -72, 2),
+                'L': (-48, -74, 4)
+                },
+    'FFA':  {   'R': (42, -50, -20),
+                'L': (-40, -52, -20)
+                },
+    'STS':  {   'R': (56, -34, 4),
+                'L': (-60, -34, 4)
+                },
+    'IPS':  {   'L': (-34, -50, 50),
+                'R': (34, -54, 50)
+                },
+    'IPL':  {   'R': (58, -50, 41),
+                'L': (-59, -50, 37)
+                }
+    }
+```
+
+The affine transformation matrix for our data, which is stored in the header of
+of Nifti files, and in the 'a' attribute of our MVPA datasets is used to map the
+coodinates of voxels in our data grid into MNI space. In order to map the MNI
+coordinates for our ROIs (from NeuroSynth), we need to use the inverse of our
+affine matrix. [Click here for a nice tutorial][4] on affine spatial
+transformations.
+
+I have added the following function to [amvpa.py][1] for this purpose:
+
+```python
+def get_f_indx_for_mni_coord(mni_coord, grid, aff): 
+    x,y,z = grid 
+    vol_idx = np.arange(x*y*z).reshape((x,y,z)) 
+    indcs = np.indices((x,y,z)) 
+    mni = np.ones((4,1)) 
+    mni[:3,0] = mni_coord 
+    c = np.round(np.dot(np.linalg.inv(aff),mni)) 
+    idx = vol_idx[int(c[0]), int(c[1]), int(c[2])] 
+    return idx 
+```
+Using this function and our **masked_neighborhood** function, we can define ROIs
+for based on our coordinates:
+
+```python
+ds = load('01', allruns=True)
+
+eba_l_idx = get_f_indx_for_mni_coord(   coord['EBA']['L'], 
+                                        ds.fa['f_indx'],
+                                        ds.a['aff'])
+print(eba_l_idx) # should yield f_index: 86351
+
+# Use this feature index to get masked_neighborhood with 200 voxels:
+eba_l_roi = masked_neighborhood(eba_l_idx, ds.fa['f_indx'], grid, nvox=200)
+
+print(len(eba_l_roi)) # should yield: 200
+print(eba_l_roi[:5])  # should yield: [86351, 81038, 86282, 86352, 86420]
+
+# Now define a new dataset by selecting just the features in eba_l_roi:
+eba_l_ds = ds.select_features(eba_l_roi)
+
+eba_l_ds.shape # should yield: (20, 200)
+```
+Finally to get the RDM for the left EBA:
+
+```python
+rdm = rdm_measure(eba_l_ds)
+```
+
+
+
+
+
+
+[4]: https://www.cs.utexas.edu/users/fussell/courses/cs384g-fall2011/lectures/lecture07-Affine.pdf
+
 ## Question 3
 
 Calculate correlations of RDMs between these 5 loci then plot as 2nd order DSM

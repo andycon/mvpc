@@ -388,6 +388,10 @@ def spherical_neighborhood(idx, grid, radius=1):
 
 def masked_neighborhood(idx, mask, grid, nvox=20, i=None):
 
+    if idx not in mask:
+        print("Error: Center voxel idx is must be in mask")
+        sys.exit()
+
     nbhood = [idx]
     nu_nbs = [idx]
 
@@ -408,7 +412,13 @@ def masked_neighborhood(idx, mask, grid, nvox=20, i=None):
         for c in candidates:
             if c not in nbhood and c in mask:
                 nu_nbs.append(c)
-        
+        if len(nu_nbs) == 0:
+            print(("<!> WARNING <!>:\n<!>\tNumber of possible neighborhood voxels "
+               "({a})\n<!>\tis less than number requested for neighborhood ({b}) "
+               "\n<!>\tfor masked_neighborhood with idx = {c} and nvox = {b}."  
+                    ).format(a=len(nbhood),b=nvox, c=idx))
+            break
+
         nbhood = nbhood + nu_nbs
 
     if i is not None:
