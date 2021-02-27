@@ -308,6 +308,9 @@ roi_mask.fa = eba_l_ds.fa
 # save to subject directory
 roi_mask.save_to_nifti("../sub-rid000001/eba_l_mask.nii")
 ```
+Here is a this mask on a SUMA surface:
+
+![Left EBA on MNI Surface][5]
 
 
 Finally to get the RDM for the left EBA:
@@ -322,7 +325,7 @@ rdm = rdm_measure(eba_l_ds)
 
 
 [4]: https://www.cs.utexas.edu/users/fussell/courses/cs384g-fall2011/lectures/lecture07-Affine.pdf
-
+[5]: https://github.com/andycon/mvpc/blob/master/code/eba_l.png
 ## Question 3
 
 Calculate correlations of RDMs between these 5 loci then plot as 2nd order DSM
