@@ -294,6 +294,22 @@ eba_l_ds = ds.select_features(eba_l_roi)
 
 eba_l_ds.shape # should yield: (20, 200)
 ```
+
+As a sanity check we can use our ROI dataset to make a mask and see what it
+looks like using AFNI (or whatever). To do this we make a new dataset with the
+same dataset attributes 'a' and feature attributes 'fa' as the ROI dataset, and
+set the samples to a single row of ones, and save the mask dataset to a nifti
+file:
+```python
+roi_mask = Dataset(np.ones((1,eba_l_ds.shape[1])))
+roi_mask.a = eba_l_ds.a
+roi_mask.fa = eba_l_ds.fa
+
+# save to subject directory
+roi_mask.save_to_nifti("../sub-rid000001/eba_l_mask.nii")
+```
+
+
 Finally to get the RDM for the left EBA:
 
 ```python
